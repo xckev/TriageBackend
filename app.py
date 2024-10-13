@@ -3,6 +3,7 @@ import datetime
 from flask import Flask, jsonify
 from newsapi import NewsApiClient
 import os
+import base64
 
 from peft import PeftModel, PeftConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -38,6 +39,45 @@ def get_news(disasterName):
     arr = arr[:lim]
 
     toReturn = jsonify({"articles": arr})
+    toReturn.headers.add('Access-Control-Allow-Origin', '*')
+    return toReturn
+
+@app.route('/getRisk/<string:longitude>/<string:latitude>', methods=['GET'])
+def getRisk(longitude, latitude):
+    client_id = "0q700A0v22eSwKlJnFFWGZttA9wwDc72"
+    client_secret = "59F6aKA9QxE59j0V"
+    credentials = f"{client_id}:{client_secret}"
+    base64_value = base64.b64encode(credentials.encode()).decode()
+
+    token_url = "https://api.precisely.com/oauth/token"
+    headers = {
+        "Authorization": f"Basic {base64_value}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    data = {
+        "grant_type": "client_credentials"
+    }
+
+    response = requests.post(token_url, headers=headers, data=data)
+    access_token = response.json()["access_token"]
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    richter_value = 'all'
+    include_geometry = 'N'
+
+    earthUrl = f'https://api.precisely.com/risks/v1/earthquake/bylocation?latitude={latitude}&longitude={longitude}&richterValue={richter_value}&includeGeometry={include_geometry}'
+    fireUrl = f'https://api.precisely.com/risks/v2/fire/bylocation?latitude={latitude}&longitude={longitude}'
+    floodUrl = f'https://api.precisely.com/risks/v1/shoreline/distancetofloodhazard/bylocation?latitude={latitude}&longitude={longitude}'
+
+    earthResponse = requests.get(earthUrl, headers=headers)
+    fireResponse = requests.get(fireUrl, headers=headers)
+    floodResponse = requests.get(floodUrl, headers=headers)
+
+    toReturn = jsonify({"earth": earthResponse.json()['riskLevel'], "fire": fireResponse.json()['riskDesc'], "flood":floodResponse.json()['waterBody'][0]['distance']['value']})
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
@@ -113,3 +153,4 @@ def perplexity_question(disasterName, query):
 if (__name__ == "__main__"):
 
     app.run(host="0.0.0.0", port="6969", debug=True)
+
