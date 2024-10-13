@@ -70,13 +70,11 @@ def getRisk(address):
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
-@app.route('/imagerisk', methods=['POST'])
-def image_risk():
+@app.route('/imagerisk/<string:address>', methods=['GET'])
+def image_risk(address):
     API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
 
     try:
-        address = request.get_json()['address']
-
         googleKey = 'AIzaSyCgWSfHxmUm-75lPOdgFfHeBfUBmhkEqRI'
         url = f'https://maps.googleapis.com/maps/api/staticmap?center={address}&zoom=15&size=400x400&maptype=satellite&key={googleKey}'
         response = requests.get(url)
