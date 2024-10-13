@@ -5,12 +5,12 @@ from newsapi import NewsApiClient
 import os
 
 from peft import PeftModel, PeftConfig
-import transformers
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 config = PeftConfig.from_pretrained("yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
-base_model = transformers.AutoModelForCausalLM.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
+base_model = AutoModelForCausalLM.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
 model = PeftModel.from_pretrained(base_model, "yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
-tokenizer = transformers.AutoTokenizer.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
+tokenizer = AutoTokenizer.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
 
 app = Flask(__name__)
 
