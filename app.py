@@ -93,12 +93,13 @@ def image_risk(address):
         scores = {}
         max = ''
         maxScore = 0
+        string = ""
         for filename in os.listdir('./images'):
           
               file_path = os.path.join('./images', filename)
               line = file_path.split('.')[2]
               img2_data = ''
-
+              
               with open(file_path, "rb") as img_file:
                   img2_data = base64.b64encode(img_file.read()).decode('utf-8')
 
@@ -110,11 +111,12 @@ def image_risk(address):
 
 
               response = requests.post(API_URL, json=request_body)
-              if maxScore < response.json()['similarity']:
-                  maxScore = response.json()['similarity']
-                  max = line
+              string += response.text + file_path + " - "
+              # if maxScore < response.json()['similarity']:
+              #     maxScore = response.json()['similarity']
+              #     max = line
             
-        return jsonify({"score": max}), 200
+        return jsonify({"score": string}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
