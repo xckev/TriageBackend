@@ -4,8 +4,6 @@ from flask import Flask, request, jsonify
 from newsapi import NewsApiClient
 import os
 import base64
-import io
-import numpy as np
 import cv2
 
 # from peft import PeftModel, PeftConfig
