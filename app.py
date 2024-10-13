@@ -8,10 +8,10 @@ import base64
 from peft import PeftModel, PeftConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-#config = PeftConfig.from_pretrained("yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
-#base_model = AutoModelForCausalLM.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
-#model = PeftModel.from_pretrained(base_model, "yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
-#tokenizer = AutoTokenizer.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
+config = PeftConfig.from_pretrained("yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
+base_model = AutoModelForCausalLM.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
+model = PeftModel.from_pretrained(base_model, "yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
+tokenizer = AutoTokenizer.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
 
 app = Flask(__name__)
 
@@ -86,7 +86,7 @@ def getRisk(address):
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
-'''
+
 @app.route('/intel-llama-question/<string:disasterName>/<string:query>', methods=['GET'])
 def intel_llama_question(disasterName, query):
     prompt = "You are Triage, a real-time disaster detection and relief AI assistant to answer questions regarding " + disasterName + ". You will be provided summaries of recent and relevant news sources that may help inform your responses. Keep your answers relevant and helpful as the user may currently be involved in a disaster. Decline answering unrelated questions.\n\nUser query: " + query + "\n\nNEWS ARTICLES:\n"
@@ -108,7 +108,6 @@ def intel_llama_question(disasterName, query):
     toReturn = jsonify({"answer": response})
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
-    '''
 
 @app.route('/perplexity-question/<string:disasterName>/<string:query>', methods=['GET'])
 def perplexity_question(disasterName, query):
