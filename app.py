@@ -1,8 +1,21 @@
 import requests
 import datetime
-from flask import Flask, jsonify
-from newsapi import NewsApiClient
+from flask import Flask, jsonify, send_from_directory, request, url_for
 import os
+from werkzeug.utils import secure_filename
+from flask_cors import CORS
+import logging
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from PIL import Image
+from roboflow import Roboflow
+import supervision as sv
+import cv2
+import threading
+import time
 import base64
 
 from peft import PeftModel, PeftConfig
@@ -14,9 +27,17 @@ model = PeftModel.from_pretrained(base_model, "yuriachermann/Not-so-bright-AGI-L
 tokenizer = AutoTokenizer.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
 
 app = Flask(__name__)
+CORS(app)
 
-pplx_key = "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"
-news_api = NewsApiClient(api_key="e194b22299a64a58bf96756191249647")
+app.config['UPLOAD_FOLDER'] = 'uploads'
+try:
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+        logging.info(f"Created upload directory: {app.config['UPLOAD_FOLDER']}")
+    else:
+        logging.info(f"Upload directory already exists: {app.config['UPLOAD_FOLDER']}")
+except Exception as e:
+    logging.error(f"Error creating upload directory: {str(e)}")
 
 @app.route('/', methods=['GET'])
 def get_home():
