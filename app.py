@@ -34,21 +34,9 @@ def lastweek(string=True):
     day = datetime.date.today() - datetime.timedelta(7)
     return day
 
+
 @app.route('/getRisk/<string:address>', methods=['GET'])
 def getRisk(address):
-    lweek = lastweek(True)
-    articles = news_api.get_everything(q=disasterName, from_param=lweek)
-
-    arr = articles["articles"]
-    lim = min(10, len(arr))
-    arr = arr[:lim]
-
-    toReturn = jsonify({"articles": arr})
-    toReturn.headers.add('Access-Control-Allow-Origin', '*')
-    return toReturn
-
-@app.route('/getRisk/<string:longitude>/<string:latitude>', methods=['GET'])
-def getRisk(longitude, latitude):
     client_id = "0q700A0v22eSwKlJnFFWGZttA9wwDc72"
     client_secret = "59F6aKA9QxE59j0V"
     credentials = f"{client_id}:{client_secret}"
