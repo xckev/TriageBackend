@@ -77,7 +77,12 @@ def getRisk(longitude, latitude):
     fireResponse = requests.get(fireUrl, headers=headers)
     floodResponse = requests.get(floodUrl, headers=headers)
 
-    toReturn = jsonify({"earth": earthResponse.json()['riskLevel'], "fire": fireResponse.json()['riskDesc'], "flood":floodResponse.json()['waterBody'][0]['distance']['value']})
+    if len(earthResponse.json()) == 0:
+        earthResponse = 'No Risk'
+    else:
+        earthResponse = earthResponse.json()['riskLevel']
+
+    toReturn = jsonify({"earth": earthResponse, "fire": fireResponse.json()['riskDesc'], "flood":floodResponse.json()['waterBody'][0]['distance']['value']})
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
