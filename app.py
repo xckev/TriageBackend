@@ -43,7 +43,7 @@ def get_news(disasterName):
     return toReturn
 
 @app.route('/getRisk/<string:longitude>/<string:latitude>', methods=['GET'])
-def getRisk(longitude, latitude):
+def getRisk(address):
     client_id = "0q700A0v22eSwKlJnFFWGZttA9wwDc72"
     client_secret = "59F6aKA9QxE59j0V"
     credentials = f"{client_id}:{client_secret}"
@@ -69,9 +69,9 @@ def getRisk(longitude, latitude):
     richter_value = 'all'
     include_geometry = 'N'
 
-    earthUrl = f'https://api.precisely.com/risks/v1/earthquake/bylocation?latitude={latitude}&longitude={longitude}&richterValue={richter_value}&includeGeometry={include_geometry}'
-    fireUrl = f'https://api.precisely.com/risks/v2/fire/bylocation?latitude={latitude}&longitude={longitude}'
-    floodUrl = f'https://api.precisely.com/risks/v1/shoreline/distancetofloodhazard/bylocation?latitude={latitude}&longitude={longitude}'
+    earthUrl = f'https://api.precisely.com/risks/v1/earthquake/byaddress?address={address}&richterValue={richter_value}&includeGeometry={include_geometry}'
+    fireUrl = f'https://api.precisely.com/risks/v2/fire/byaddress?address={address}'
+    floodUrl = f'https://api.precisely.com/risks/v1/shoreline/distancetofloodhazard/byaddress?address={address}'
 
     earthResponse = requests.get(earthUrl, headers=headers)
     fireResponse = requests.get(fireUrl, headers=headers)
