@@ -70,6 +70,60 @@ def getRisk(address):
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
+@app.route('/imagerisk', methods=['POST'])
+def image_risk():
+    API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
+
+    try:
+        address = request.get_json()['address']
+
+        googleKey = 'AIzaSyCgWSfHxmUm-75lPOdgFfHeBfUBmhkEqRI'
+        url = f'https://maps.googleapis.com/maps/api/staticmap?center={address}&zoom=15&size=400x400&maptype=satellite&key={googleKey}'
+        response = requests.get(url)
+
+        img_array = np.frombuffer(response.content, np.uint8)
+
+        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        _, buffer = cv2.imencode('.png', img)
+        img_base64 = base64.b64encode(buffer).decode('utf-8')
+
+        IMAGE_DIR = './images'  # Change this to your actual directory
+
+
+        API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
+
+        # List of image filenames in the directory
+        image_filenames = [f"{i}.1.png" for i in range(1, 6)]
+        # Store scores for each image pair
+        scores = {}
+        max = ''
+        maxScore = 0
+        for filename in os.listdir('./images'):
+            file_path = os.path.join('./images', filename)
+            line = file_path.split('.')[2]
+            img2_data = ''
+
+            with open(file_path, "rb") as img_file:
+                img2_data = base64.b64encode(img_file.read()).decode('utf-8')
+
+            # Prepare the request body
+            request_body = {
+                "img_1": img_base64,
+                "img_2": img2_data
+            }
+
+
+            response = requests.post(API_URL, json=request_body)
+            if maxScore < response.json()['similarity']:
+                maxScore = response.json()['similarity']
+                max = file_path
+            
+        return jsonify({"score": maxScore}), 200
+
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # @app.route('/intel-llama-question/<string:disasterName>/<string:query>', methods=['GET'])
 # def intel_llama_question(disasterName, query):
 #     prompt = "You are Triage, a real-time disaster detection and relief AI assistant to answer questions regarding " + disasterName + ". You will be provided summaries of recent and relevant news sources that may help inform your responses. Keep your answers relevant and helpful as the user may currently be involved in a disaster. Decline answering unrelated questions.\n\nUser query: " + query + "\n\nNEWS ARTICLES:\n"
@@ -135,56 +189,3 @@ if (__name__ == "__main__"):
 
     app.run(host="0.0.0.0", port="6969", debug=True)
 
-@app.route('/imagerisk', methods=['POST'])
-def image_risk():
-    API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
-
-    try:
-        address = request.get_json()['address']
-
-        googleKey = 'AIzaSyCgWSfHxmUm-75lPOdgFfHeBfUBmhkEqRI'
-        url = f'https://maps.googleapis.com/maps/api/staticmap?center={address}&zoom=15&size=400x400&maptype=satellite&key={googleKey}'
-        response = requests.get(url)
-
-        img_array = np.frombuffer(response.content, np.uint8)
-
-        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-        _, buffer = cv2.imencode('.png', img)
-        img_base64 = base64.b64encode(buffer).decode('utf-8')
-
-        IMAGE_DIR = './images'  # Change this to your actual directory
-
-
-        API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
-
-        # List of image filenames in the directory
-        image_filenames = [f"{i}.1.png" for i in range(1, 6)]
-        # Store scores for each image pair
-        scores = {}
-        max = ''
-        maxScore = 0
-        for filename in os.listdir('./images'):
-            file_path = os.path.join('./images', filename)
-            line = file_path.split('.')[2]
-            img2_data = ''
-
-            with open(file_path, "rb") as img_file:
-                img2_data = base64.b64encode(img_file.read()).decode('utf-8')
-
-            # Prepare the request body
-            request_body = {
-                "img_1": img_base64,
-                "img_2": img2_data
-            }
-
-
-            response = requests.post(API_URL, json=request_body)
-            if maxScore < response.json()['similarity']:
-                maxScore = response.json()['similarity']
-                max = file_path
-            
-        return jsonify({"score": maxScore}), 200
-
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
