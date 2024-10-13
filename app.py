@@ -34,8 +34,8 @@ def lastweek(string=True):
     day = datetime.date.today() - datetime.timedelta(7)
     return day
 
-@app.route('/news/<string:disasterName>', methods=['GET'])
-def get_news(disasterName):
+@app.route('/getRisk/<string:address>', methods=['GET'])
+def getRisk(address):
     lweek = lastweek(True)
     articles = news_api.get_everything(q=disasterName, from_param=lweek)
 
@@ -74,15 +74,19 @@ def getRisk(longitude, latitude):
     richter_value = 'all'
     include_geometry = 'N'
 
-    earthUrl = f'https://api.precisely.com/risks/v1/earthquake/bylocation?latitude={latitude}&longitude={longitude}&richterValue={richter_value}&includeGeometry={include_geometry}'
-    fireUrl = f'https://api.precisely.com/risks/v2/fire/bylocation?latitude={latitude}&longitude={longitude}'
-    floodUrl = f'https://api.precisely.com/risks/v1/shoreline/distancetofloodhazard/bylocation?latitude={latitude}&longitude={longitude}'
+    earthUrl = f'https://api.precisely.com/risks/v1/earthquake/byaddress?address={address}&richterValue={richter_value}&includeGeometry={include_geometry}'
+    fireUrl = f'https://api.precisely.com/risks/v2/fire/byaddress?address={address}'
+    floodUrl = f'https://api.precisely.com/risks/v1/shoreline/distancetofloodhazard/byaddress?address={address}'
 
     earthResponse = requests.get(earthUrl, headers=headers)
     fireResponse = requests.get(fireUrl, headers=headers)
     floodResponse = requests.get(floodUrl, headers=headers)
 
-    toReturn = jsonify({"earth": earthResponse.json()['riskLevel'], "fire": fireResponse.json()['riskDesc'], "flood":floodResponse.json()['waterBody'][0]['distance']['value']})
+    if len(earthResponse.json()) == 0:
+        earthResponse = 'No Risk'
+    else:
+        earthResponse = earthResponse.json()['riskLevel']
+    toReturn = jsonify({"earth": earthResponse, "fire": fireResponse.json()['riskDesc'], "flood":floodResponse.json()['waterBody'][0]['distance']['value']})
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
