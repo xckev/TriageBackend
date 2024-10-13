@@ -93,7 +93,6 @@ def image_risk(address):
         scores = {}
         max = ''
         maxScore = 0
-        string = ""
         for filename in os.listdir('./images'):
           
               file_path = os.path.join('./images', filename)
@@ -111,12 +110,11 @@ def image_risk(address):
 
 
               response = requests.post(API_URL, json=request_body)
-              string += response.text + file_path + " - "
-              # if maxScore < response.json()['similarity']:
-              #     maxScore = response.json()['similarity']
-              #     max = line
+              if maxScore < response.json()['similarity']:
+                  maxScore = response.json()['similarity']
+                  max = line
             
-        return jsonify({"score": string}), 200
+        return jsonify({"score": max}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
