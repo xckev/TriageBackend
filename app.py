@@ -5,6 +5,7 @@ from newsapi import NewsApiClient
 import os
 import base64
 import cv2
+import np
 
 # from peft import PeftModel, PeftConfig
 # from transformers import AutoModelForCausalLM, AutoTokenizer
