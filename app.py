@@ -1,43 +1,22 @@
 import requests
 import datetime
-from flask import Flask, jsonify, send_from_directory, request, url_for
+from flask import Flask, jsonify
+from newsapi import NewsApiClient
 import os
-from werkzeug.utils import secure_filename
-from flask_cors import CORS
-import logging
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from PIL import Image
-from roboflow import Roboflow
-import supervision as sv
-import cv2
-import threading
-import time
 import base64
 
 from peft import PeftModel, PeftConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-#config = PeftConfig.from_pretrained("yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
-#base_model = AutoModelForCausalLM.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
-#model = PeftModel.from_pretrained(base_model, "yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
-#tokenizer = AutoTokenizer.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
+config = PeftConfig.from_pretrained("yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
+base_model = AutoModelForCausalLM.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
+model = PeftModel.from_pretrained(base_model, "yuriachermann/Not-so-bright-AGI-Llama3.1-8B-UC200k-v2")
+tokenizer = AutoTokenizer.from_pretrained("VAGOsolutions/Llama-3-SauerkrautLM-8b-Instruct")
 
 app = Flask(__name__)
-CORS(app)
 
-app.config['UPLOAD_FOLDER'] = 'uploads'
-try:
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
-        logging.info(f"Created upload directory: {app.config['UPLOAD_FOLDER']}")
-    else:
-        logging.info(f"Upload directory already exists: {app.config['UPLOAD_FOLDER']}")
-except Exception as e:
-    logging.error(f"Error creating upload directory: {str(e)}")
+pplx_key = "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"
+news_api = NewsApiClient(api_key="e194b22299a64a58bf96756191249647")
 
 @app.route('/', methods=['GET'])
 def get_home():
@@ -107,7 +86,7 @@ def getRisk(address):
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
-'''
+
 @app.route('/intel-llama-question/<string:disasterName>/<string:query>', methods=['GET'])
 def intel_llama_question(disasterName, query):
     prompt = "You are Triage, a real-time disaster detection and relief AI assistant to answer questions regarding " + disasterName + ". You will be provided summaries of recent and relevant news sources that may help inform your responses. Keep your answers relevant and helpful as the user may currently be involved in a disaster. Decline answering unrelated questions.\n\nUser query: " + query + "\n\nNEWS ARTICLES:\n"
@@ -129,7 +108,6 @@ def intel_llama_question(disasterName, query):
     toReturn = jsonify({"answer": response})
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
-    '''
 
 @app.route('/perplexity-question/<string:disasterName>/<string:query>', methods=['GET'])
 def perplexity_question(disasterName, query):
@@ -180,5 +158,4 @@ def perplexity_question(disasterName, query):
 
 if (__name__ == "__main__"):
 
-    app.run(host="0.0.0.0", port="6969", debug=True)
-
+    app.run(port="6969", debug=True)
