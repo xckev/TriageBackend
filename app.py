@@ -89,34 +89,32 @@ def image_risk(address):
 
         API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
 
-        # List of image filenames in the directory
-        image_filenames = [f"{i}.1.png" for i in range(1, 6)]
         # Store scores for each image pair
         scores = {}
         max = ''
         maxScore = 0
         for filename in os.listdir('./images'):
-            file_path = os.path.join('./images', filename)
-            line = file_path.split('.')[2]
-            img2_data = ''
+          
+              file_path = os.path.join('./images', filename)
+              line = file_path.split('.')[2]
+              img2_data = ''
 
-            with open(file_path, "rb") as img_file:
-                img2_data = base64.b64encode(img_file.read()).decode('utf-8')
+              with open(file_path, "rb") as img_file:
+                  img2_data = base64.b64encode(img_file.read()).decode('utf-8')
 
-            # Prepare the request body
-            request_body = {
-                "img_1": img_base64,
-                "img_2": img2_data
-            }
+              # Prepare the request body
+              request_body = {
+                  "img_1": img_base64,
+                  "img_2": img2_data
+              }
 
 
-            response = requests.post(API_URL, json=request_body)
-            if maxScore < response.json()['similarity']:
-                maxScore = response.json()['similarity']
-                max = file_path
+              response = requests.post(API_URL, json=request_body)
+              if maxScore < response.json()['similarity']:
+                  maxScore = response.json()['similarity']
+                  max = line
             
-        return jsonify({"score": maxScore}), 200
-
+        return jsonify({"score": max}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
