@@ -1,9 +1,14 @@
 import requests
 import datetime
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 from newsapi import NewsApiClient
 import os
 import base64
+import io
+import numpy as np
+import cv2
+
+
 
 from peft import PeftModel, PeftConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -42,8 +47,8 @@ def get_news(disasterName):
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
 
-@app.route('/getRisk/<string:address>', methods=['GET'])
-def getRisk(address):
+@app.route('/getRisk/<string:longitude>/<string:latitude>', methods=['GET'])
+def getRisk(longitude, latitude):
     client_id = "0q700A0v22eSwKlJnFFWGZttA9wwDc72"
     client_secret = "59F6aKA9QxE59j0V"
     credentials = f"{client_id}:{client_secret}"
@@ -69,23 +74,17 @@ def getRisk(address):
     richter_value = 'all'
     include_geometry = 'N'
 
-    earthUrl = f'https://api.precisely.com/risks/v1/earthquake/byaddress?address={address}&richterValue={richter_value}&includeGeometry={include_geometry}'
-    fireUrl = f'https://api.precisely.com/risks/v2/fire/byaddress?address={address}'
-    floodUrl = f'https://api.precisely.com/risks/v1/shoreline/distancetofloodhazard/byaddress?address={address}'
+    earthUrl = f'https://api.precisely.com/risks/v1/earthquake/bylocation?latitude={latitude}&longitude={longitude}&richterValue={richter_value}&includeGeometry={include_geometry}'
+    fireUrl = f'https://api.precisely.com/risks/v2/fire/bylocation?latitude={latitude}&longitude={longitude}'
+    floodUrl = f'https://api.precisely.com/risks/v1/shoreline/distancetofloodhazard/bylocation?latitude={latitude}&longitude={longitude}'
 
     earthResponse = requests.get(earthUrl, headers=headers)
     fireResponse = requests.get(fireUrl, headers=headers)
     floodResponse = requests.get(floodUrl, headers=headers)
 
-    if len(earthResponse.json()) == 0:
-        earthResponse = 'No Risk'
-    else:
-        earthResponse = earthResponse.json()['riskLevel']
-
-    toReturn = jsonify({"earth": earthResponse, "fire": fireResponse.json()['riskDesc'], "flood":floodResponse.json()['waterBody'][0]['distance']['value']})
+    toReturn = jsonify({"earth": earthResponse.json()['riskLevel'], "fire": fireResponse.json()['riskDesc'], "flood":floodResponse.json()['waterBody'][0]['distance']['value']})
     toReturn.headers.add('Access-Control-Allow-Origin', '*')
     return toReturn
-
 
 @app.route('/intel-llama-question/<string:disasterName>/<string:query>', methods=['GET'])
 def intel_llama_question(disasterName, query):
@@ -159,3 +158,57 @@ def perplexity_question(disasterName, query):
 if (__name__ == "__main__"):
 
     app.run(host="0.0.0.0", port="6969", debug=True)
+
+@app.route('/imagerisk', methods=['POST'])
+def image_risk():
+    API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
+
+    try:
+        address = request.get_json()['address']
+
+        googleKey = 'AIzaSyCgWSfHxmUm-75lPOdgFfHeBfUBmhkEqRI'
+        url = f'https://maps.googleapis.com/maps/api/staticmap?center={address}&zoom=15&size=400x400&maptype=satellite&key={googleKey}'
+        response = requests.get(url)
+
+        img_array = np.frombuffer(response.content, np.uint8)
+
+        img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        _, buffer = cv2.imencode('.png', img)
+        img_base64 = base64.b64encode(buffer).decode('utf-8')
+
+        IMAGE_DIR = './images'  # Change this to your actual directory
+
+
+        API_URL = "https://3gf752e95a.execute-api.us-east-2.amazonaws.com/prod/image-similarity/"
+
+        # List of image filenames in the directory
+        image_filenames = [f"{i}.1.png" for i in range(1, 6)]
+        # Store scores for each image pair
+        scores = {}
+        max = ''
+        maxScore = 0
+        for filename in os.listdir('./images'):
+            file_path = os.path.join('./images', filename)
+            line = file_path.split('.')[2]
+            img2_data = ''
+
+            with open(file_path, "rb") as img_file:
+                img2_data = base64.b64encode(img_file.read()).decode('utf-8')
+
+            # Prepare the request body
+            request_body = {
+                "img_1": img_base64,
+                "img_2": img2_data
+            }
+
+
+            response = requests.post(API_URL, json=request_body)
+            if maxScore < response.json()['similarity']:
+                maxScore = response.json()['similarity']
+                max = file_path
+            
+        return jsonify({"score": maxScore}), 200
+
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
