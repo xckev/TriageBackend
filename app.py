@@ -128,12 +128,12 @@ def run_program():
             }
 
             # Delete the original and processed images
-            delete_files(image_path_before, image_path_after, output_path_before, output_path_after)
+            # delete_files(image_path_before, image_path_after, output_path_before, output_path_after)
 
             return jsonify(response)
         except Exception as e:
             # Delete the original images in case of an error
-            delete_files(image_path_before, image_path_after)
+            # delete_files(image_path_before, image_path_after)
             return jsonify({'error': str(e)}), 500
 
     return jsonify({'error': 'Invalid file type'}), 400
