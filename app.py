@@ -79,10 +79,6 @@ def image_risks(address):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/imagerisk/<string:address>', methods=['GET'])
-def image_risk(address):
-    damage = [2, 6, 8, 1, 14, 17, 3]
-    return jsonify({"damage": str(damage[np.random.randint(0, len(damage))]) + "%"})
 
 @app.route('/run-program', methods=['POST'])
 def run_program():
