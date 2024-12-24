@@ -23,8 +23,8 @@ CORS(app)
 
 # Constants
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'output'
+UPLOAD_FOLDER = 'images/damage/uploads'
+OUTPUT_FOLDER = 'images/damage/outputs'
 
 # Environment variables
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
@@ -64,8 +64,8 @@ def analyze_risk(address):
         max_similarity = 0
         best_match = ''
         
-        for filename in os.listdir('./risk-images'):
-            file_path = os.path.join('./risk-images', filename)
+        for filename in os.listdir('./images/risk'):
+            file_path = os.path.join('./images/risk', filename)
             category = file_path.split('.')[2]
             
             with open(file_path, "rb") as img_file:
@@ -196,4 +196,4 @@ def cleanup_files(*file_paths):
             print(f"Error deleting {path}: {str(e)}")
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=False, port=80)
