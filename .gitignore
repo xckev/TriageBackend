@@ -1,3 +1,5 @@
 .vercel
-
 *.pyc
+.env
+uploads
+output
