@@ -195,5 +195,8 @@ def cleanup_files(*file_paths):
         except Exception as e:
             print(f"Error deleting {path}: {str(e)}")
 
+def create_app():
+    return app
+
 if __name__ == '__main__':
     app.run(debug=False, port=80)
