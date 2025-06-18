@@ -1,11 +1,13 @@
 import requests
 from datetime import datetime
 from supabase import create_client, Client
+from dotenv import load_dotenv
+import os
 
 # Configuration
-AMBEE_API_KEY = 'da8e070dab0b6b57cf082e152f1945c6be580654f6c44a289ec42964a702df0f'
-SUPABASE_URL = 'https://qnljdbqnskhvkjorvurb.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFubGpkYnFuc2todmtqb3J2dXJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgyODk0OTIsImV4cCI6MjA1Mzg2NTQ5Mn0.Joj6eu946k1959uNAENOZ4nDo1nQtgTZ-_cpqBp6hGY'
+AMBEE_API_KEY = os.getenv('AMBEE_API_KEY')
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 TABLE_NAME = 'incidents'
 
 # Initialize Supabase client
